@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MJ3GC 控制面板</title>
+  <style>
+    :root {
+      --bg: #0d0f14;
+      --panel: #141824;
+      --card: #1b2232;
+      --muted: #9aa4b2;
+      --text: #eef2f7;
+      --accent: #4aa8ff;
+      --accent-2: #22d3ee;
+      --danger: #ff5f6d;
+      --success: #32d583;
+      --warning: #f5b76a;
+      --border: #2b3346;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Microsoft YaHei UI", "PingFang SC", "Noto Sans CJK SC", sans-serif;
+      background: radial-gradient(circle at 20% 20%, #1a2340 0, #0d0f14 45%) no-repeat;
+      color: var(--text);
+    }
+    header {
+      padding: 20px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      background: rgba(15, 19, 28, 0.85);
+      backdrop-filter: blur(6px);
+    }
+    header h1 {
+      margin: 0;
+      font-size: 20px;
+      letter-spacing: 0.5px;
+    }
+    .status {
+      font-size: 12px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(74, 168, 255, 0.12);
+      color: var(--accent);
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      min-height: calc(100vh - 72px);
+    }
+    nav {
+      border-right: 1px solid var(--border);
+      padding: 18px;
+      background: rgba(15, 19, 28, 0.6);
+    }
+    nav .section {
+      margin-bottom: 24px;
+    }
+    nav h3 {
+      margin: 0 0 10px;
+      font-size: 13px;
+      color: var(--muted);
+      letter-spacing: 0.4px;
+    }
+    nav button {
+      width: 100%;
+      text-align: left;
+      margin-bottom: 8px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+    }
+    nav button.active {
+      background: rgba(74, 168, 255, 0.15);
+      border-color: rgba(74, 168, 255, 0.5);
+    }
+    main {
+      padding: 24px;
+      overflow: auto;
+    }
+    .grid {
+      display: grid;
+      gap: 16px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px;
+    }
+    .card h2 {
+      margin: 0 0 12px;
+      font-size: 16px;
+    }
+    .muted { color: var(--muted); font-size: 12px; }
+    .row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    label {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    input, select, textarea {
+      width: 100%;
+      background: #0f1320;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 10px;
+      color: var(--text);
+      outline: none;
+    }
+    textarea { min-height: 140px; resize: vertical; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      font-size: 13px;
+      color: #0b0e14;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    }
+    .btn-outline {
+      background: transparent;
+      color: var(--text);
+      border-color: var(--border);
+    }
+    .btn-danger {
+      background: linear-gradient(135deg, #ff7b7b, #ff4d6d);
+      color: #fff;
+    }
+    .pill {
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+    }
+    th { color: var(--muted); font-weight: 500; }
+    .key-box {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .key-box input { flex: 1; font-family: ui-monospace, "SFMono-Regular", Menlo, monospace; }
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 8px;
+      border-radius: 8px;
+      background: rgba(50, 213, 131, 0.15);
+      color: var(--success);
+      font-size: 11px;
+    }
+    .log-box {
+      background: #0b0f1b;
+      border-radius: 12px;
+      padding: 12px;
+      border: 1px solid var(--border);
+      min-height: 220px;
+      max-height: 360px;
+      overflow: auto;
+      font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+      font-size: 11px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+    .flex {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .spacer { flex: 1; }
+    .hidden { display: none; }
+    .hint { font-size: 12px; color: var(--muted); }
+    .notice {
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(245, 183, 106, 0.12);
+      color: var(--warning);
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>MJ3GC 控制面板</h1>
+      <div class="muted">多账号 · 配额 · 日志 · 可视化管理</div>
+    </div>
+    <div class="flex">
+      <div class="status" id="connectionStatus">未连接</div>
+      <div class="pill" id="panelVersion">管理端</div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav>
+      <div class="section">
+        <h3>控制台</h3>
+        <button class="active" data-tab="admin">管理员面板</button>
+        <button data-tab="portal">用户中心</button>
+      </div>
+      <div class="section">
+        <h3>提示</h3>
+        <div class="hint">管理端需要管理密钥才能操作。</div>
+        <div class="hint">用户中心支持账号密码或 API 密钥登录。</div>
+      </div>
+    </nav>
+
+    <main>
+      <section id="tab-admin" class="grid" style="gap: 20px;">
+        <div class="card">
+          <div class="flex">
+            <div>
+              <h2>管理员连接</h2>
+              <div class="muted">请输入管理密钥后加载数据。</div>
+            </div>
+            <div class="spacer"></div>
+            <button class="btn" id="btnAdminConnect">加载数据</button>
+          </div>
+          <div class="row" style="margin-top: 14px;">
+            <div>
+              <label>管理密钥</label>
+              <input id="adminKey" type="password" placeholder="输入管理密钥" />
+              <div class="hint">不会上传到浏览器外，仅存本地。</div>
+            </div>
+            <div>
+              <label>API 基础地址</label>
+              <input id="adminBaseUrl" type="text" placeholder="默认使用当前域名" />
+              <div class="hint">留空即使用当前控制面板域名。</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="flex">
+            <h2>用户管理</h2>
+            <button class="btn btn-outline" id="btnRefreshUsers">刷新</button>
+          </div>
+          <div class="row" style="margin-top: 12px;">
+            <div>
+              <label>用户名</label>
+              <input id="newUsername" placeholder="例如 user01" />
+            </div>
+            <div>
+              <label>密码</label>
+              <input id="newPassword" type="password" placeholder="首次创建必须" />
+            </div>
+            <div>
+              <label>角色</label>
+              <select id="newRole">
+                <option value="user">普通用户</option>
+                <option value="owner">管理员</option>
+              </select>
+            </div>
+            <div>
+              <label>状态</label>
+              <select id="newDisabled">
+                <option value="false">启用</option>
+                <option value="true">禁用</option>
+              </select>
+            </div>
+          </div>
+          <div class="flex">
+            <button class="btn" id="btnCreateUser">创建/更新用户</button>
+            <span class="hint">更新用户时只需填用户名 + (可选)新密码。</span>
+          </div>
+          <div class="notice" style="margin-top: 12px;">
+            用户删除会保留已生成的 API 密钥，需要手动删除或改绑。
+          </div>
+          <table style="margin-top: 16px;">
+            <thead>
+              <tr>
+                <th>用户ID</th>
+                <th>用户名</th>
+                <th>角色</th>
+                <th>状态</th>
+                <th>创建时间</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="userTable"></tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <div class="flex">
+            <h2>API 密钥管理</h2>
+            <button class="btn btn-outline" id="btnRefreshKeys">刷新</button>
+          </div>
+          <div class="row" style="margin-top: 12px;">
+            <div>
+              <label>标签</label>
+              <input id="newKeyLabel" placeholder="如 客户A" />
+            </div>
+            <div>
+              <label>绑定用户ID</label>
+              <input id="newKeyUserId" placeholder="用户ID（可留空）" />
+            </div>
+            <div>
+              <label>总次数上限</label>
+              <input id="newKeyLimit" type="number" placeholder="0=无限" />
+            </div>
+            <div>
+              <label>并发上限</label>
+              <input id="newKeyConcurrency" type="number" placeholder="0=无限" />
+            </div>
+            <div>
+              <label>兼容模式</label>
+              <label class="flex" style="margin-top:6px;">
+                <input type="checkbox" id="newKeyCompat" />
+                启用
+              </label>
+            </div>
+            <div>
+              <label>手动指定密钥（可选）</label>
+              <input id="newKeyValue" placeholder="留空自动生成" />
+            </div>
+          </div>
+          <div class="flex">
+            <button class="btn" id="btnCreateKey">新增 API 密钥</button>
+            <span class="hint">可直接看到完整密钥，可复制。</span>
+          </div>
+          <table style="margin-top: 16px;">
+            <thead>
+              <tr>
+                <th>标签</th>
+                <th>API 密钥（明文）</th>
+                <th>用户ID</th>
+                <th>状态</th>
+                <th>总次数上限</th>
+                <th>已用</th>
+                <th>剩余</th>
+                <th>并发上限</th>
+                <th>兼容模式</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="keyTable"></tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <div class="flex">
+            <h2>流式日志</h2>
+            <div class="spacer"></div>
+            <label class="flex" style="font-size:12px;">
+              <input type="checkbox" id="autoScroll" checked /> 自动滚动到底部
+            </label>
+            <button class="btn btn-outline" id="btnClearLogs">清空日志</button>
+          </div>
+          <div class="log-box" id="adminLogs"></div>
+        </div>
+      </section>
+
+      <section id="tab-portal" class="grid hidden" style="gap: 20px;">
+        <div class="card">
+          <div class="flex">
+            <div>
+              <h2>用户中心登录</h2>
+              <div class="muted">支持账号密码或 API 密钥。</div>
+            </div>
+            <div class="spacer"></div>
+            <button class="btn" id="btnPortalConnect">加载</button>
+          </div>
+          <div class="row" style="margin-top: 12px;">
+            <div>
+              <label>用户名</label>
+              <input id="portalUsername" placeholder="账号登录用" />
+            </div>
+            <div>
+              <label>密码</label>
+              <input id="portalPassword" type="password" placeholder="账号登录用" />
+            </div>
+            <div>
+              <label>API 密钥</label>
+              <input id="portalKey" placeholder="API 密钥登录用" />
+            </div>
+          </div>
+          <div class="hint">若填写 API 密钥，则优先生效。</div>
+        </div>
+
+        <div class="card">
+          <h2>我的 API 额度</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>标签</th>
+                <th>API 密钥</th>
+                <th>总次数</th>
+                <th>已用</th>
+                <th>剩余</th>
+                <th>并发上限</th>
+              </tr>
+            </thead>
+            <tbody id="portalUsage"></tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <div class="flex">
+            <h2>我的请求日志</h2>
+            <div class="spacer"></div>
+            <label class="flex" style="font-size:12px;">
+              <input type="checkbox" id="portalAutoScroll" checked /> 自动滚动
+            </label>
+          </div>
+          <div class="log-box" id="portalLogs"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const state = {
+      adminKey: localStorage.getItem('mj3gc_admin_key') || '',
+      adminBaseUrl: localStorage.getItem('mj3gc_admin_base') || '',
+      logAfter: 0,
+      portalSince: 0,
+      portalAuth: {
+        username: '',
+        password: '',
+        apiKey: ''
+      }
+    };
+
+    const $ = (sel) => document.querySelector(sel);
+    const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+
+    function setStatus(text, ok) {
+      const el = $('#connectionStatus');
+      el.textContent = text;
+      el.style.color = ok ? 'var(--success)' : 'var(--accent)';
+      el.style.background = ok ? 'rgba(50, 213, 131, 0.15)' : 'rgba(74, 168, 255, 0.12)';
+    }
+
+    function baseUrl() {
+      const input = $('#adminBaseUrl').value.trim();
+      if (input) return input.replace(/\/$/, '');
+      return window.location.origin;
+    }
+
+    async function apiFetch(path, options = {}, admin = true) {
+      const url = baseUrl() + path;
+      const headers = options.headers || {};
+      headers['Content-Type'] = 'application/json';
+      if (admin) {
+        const key = $('#adminKey').value.trim();
+        if (!key) throw new Error('请输入管理密钥');
+        headers['Authorization'] = 'Bearer ' + key;
+      } else {
+        if (state.portalAuth.apiKey) {
+          headers['Authorization'] = 'Bearer ' + state.portalAuth.apiKey;
+        } else if (state.portalAuth.username) {
+          headers['Authorization'] = 'Basic ' + btoa(state.portalAuth.username + ':' + state.portalAuth.password);
+        }
+      }
+      const resp = await fetch(url, { ...options, headers });
+      const data = await resp.json().catch(() => ({}));
+      if (!resp.ok) {
+        const msg = data.error || data.message || ('请求失败：' + resp.status);
+        throw new Error(msg);
+      }
+      return data;
+    }
+
+    function formatTime(value) {
+      if (!value) return '-';
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return '-';
+      return date.toLocaleString();
+    }
+
+    function renderUsers(users) {
+      const tbody = $('#userTable');
+      tbody.innerHTML = '';
+      users.forEach((u) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${u.id || '-'}</td>
+          <td>${u.username || '-'}</td>
+          <td>${u.role || '-'}</td>
+          <td>${u.disabled ? '禁用' : '启用'}</td>
+          <td>${formatTime(u.created_at)}</td>
+          <td>
+            <button class="btn btn-outline" data-action="prefill" data-id="${u.id}">编辑</button>
+            <button class="btn btn-danger" data-action="delete" data-id="${u.id}">删除</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      tbody.querySelectorAll('button').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const id = btn.dataset.id;
+          if (btn.dataset.action === 'prefill') {
+            const user = users.find((x) => x.id === id);
+            if (!user) return;
+            $('#newUsername').value = user.username || '';
+            $('#newRole').value = user.role || 'user';
+            $('#newDisabled').value = user.disabled ? 'true' : 'false';
+            $('#newUsername').dataset.id = user.id;
+          } else {
+            if (!confirm('确定删除该用户？')) return;
+            await apiFetch(`/v0/management/mj3gc/users/${id}`, { method: 'DELETE' });
+            await loadAdminData();
+          }
+        });
+      });
+    }
+
+    function renderKeys(keys, usage) {
+      const usageMap = new Map();
+      (usage || []).forEach((k) => usageMap.set(k.id, k));
+      const tbody = $('#keyTable');
+      tbody.innerHTML = '';
+      keys.forEach((k) => {
+        const usageRow = usageMap.get(k.id) || {};
+        const remaining = usageRow.remaining ?? (k.total_limit ? Math.max(0, k.total_limit - k.used_count) : 0);
+        const total = usageRow.total_limit ?? k.total_limit ?? 0;
+        const used = usageRow.used_count ?? k.used_count ?? 0;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><input value="${k.label || ''}" data-field="label" /></td>
+          <td>
+            <div class="key-box">
+              <input value="${k.key || ''}" data-field="key" readonly />
+              <button class="btn btn-outline" data-action="copy" data-key="${k.key || ''}">复制</button>
+            </div>
+          </td>
+          <td><input value="${k.user_id || ''}" data-field="user_id" /></td>
+          <td>
+            <select data-field="enabled">
+              <option value="true" ${k.enabled ? 'selected' : ''}>启用</option>
+              <option value="false" ${k.enabled ? '' : 'selected'}>禁用</option>
+            </select>
+          </td>
+          <td><input type="number" value="${total || 0}" data-field="total_limit" /></td>
+          <td>${used || 0}</td>
+          <td>${remaining || 0}</td>
+          <td><input type="number" value="${k.concurrency_limit || 0}" data-field="concurrency_limit" /></td>
+          <td><input type="checkbox" data-field="compatibility_mode" ${k.compatibility_mode ? 'checked' : ''} /></td>
+          <td>
+            <div class="flex">
+              <button class="btn btn-outline" data-action="save">保存</button>
+              <button class="btn btn-outline" data-action="reset">重置计数</button>
+              <button class="btn btn-danger" data-action="delete">删除</button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+
+        tr.querySelector('[data-action="copy"]').addEventListener('click', async () => {
+          const keyValue = tr.querySelector('[data-field="key"]').value;
+          await navigator.clipboard.writeText(keyValue);
+          alert('已复制');
+        });
+        tr.querySelector('[data-action="save"]').addEventListener('click', async () => {
+          const payload = {
+            id: k.id,
+            label: tr.querySelector('[data-field="label"]').value,
+            user_id: tr.querySelector('[data-field="user_id"]').value,
+            enabled: tr.querySelector('[data-field="enabled"]').value === 'true',
+            total_limit: Number(tr.querySelector('[data-field="total_limit"]').value || 0),
+            concurrency_limit: Number(tr.querySelector('[data-field="concurrency_limit"]').value || 0),
+            compatibility_mode: tr.querySelector('[data-field="compatibility_mode"]').checked
+          };
+          await apiFetch('/v0/management/mj3gc/keys', {
+            method: 'POST',
+            body: JSON.stringify(payload)
+          });
+          await loadAdminData();
+        });
+        tr.querySelector('[data-action="reset"]').addEventListener('click', async () => {
+          await apiFetch(`/v0/management/mj3gc/keys/${k.id}/reset`, { method: 'POST' });
+          await loadAdminData();
+        });
+        tr.querySelector('[data-action="delete"]').addEventListener('click', async () => {
+          if (!confirm('确定删除该密钥？')) return;
+          await apiFetch(`/v0/management/mj3gc/keys/${k.id}`, { method: 'DELETE' });
+          await loadAdminData();
+        });
+      });
+    }
+
+    async function loadAdminData() {
+      const stateData = await apiFetch('/v0/management/mj3gc/state');
+      const usageData = await apiFetch('/v0/management/mj3gc/usage');
+      renderUsers(stateData.users || []);
+      renderKeys(stateData.api_keys || [], usageData.keys || []);
+    }
+
+    async function createUser() {
+      const id = $('#newUsername').dataset.id || '';
+      const payload = {
+        id: id || undefined,
+        username: $('#newUsername').value.trim(),
+        password: $('#newPassword').value.trim(),
+        role: $('#newRole').value,
+        disabled: $('#newDisabled').value === 'true'
+      };
+      await apiFetch('/v0/management/mj3gc/users', {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+      $('#newPassword').value = '';
+      $('#newUsername').dataset.id = '';
+      await loadAdminData();
+    }
+
+    async function createKey() {
+      const payload = {
+        label: $('#newKeyLabel').value.trim(),
+        user_id: $('#newKeyUserId').value.trim(),
+        total_limit: Number($('#newKeyLimit').value || 0),
+        concurrency_limit: Number($('#newKeyConcurrency').value || 0),
+        compatibility_mode: $('#newKeyCompat').checked,
+        enabled: true
+      };
+      const keyValue = $('#newKeyValue').value.trim();
+      if (keyValue) payload.key = keyValue;
+      await apiFetch('/v0/management/mj3gc/keys', {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+      $('#newKeyLabel').value = '';
+      $('#newKeyUserId').value = '';
+      $('#newKeyLimit').value = '';
+      $('#newKeyConcurrency').value = '';
+      $('#newKeyValue').value = '';
+      $('#newKeyCompat').checked = false;
+      await loadAdminData();
+    }
+
+    async function pollLogs() {
+      try {
+        const data = await apiFetch(`/v0/management/logs?after=${state.logAfter}&limit=200`);
+        const lines = data.lines || [];
+        if (lines.length > 0) {
+          const logBox = $('#adminLogs');
+          logBox.textContent = logBox.textContent + '\n' + lines.join('\n');
+          if ($('#autoScroll').checked) {
+            logBox.scrollTop = logBox.scrollHeight;
+          }
+        }
+        state.logAfter = data['latest-timestamp'] || state.logAfter;
+      } catch (err) {
+        // ignore log errors
+      }
+    }
+
+    async function portalFetch(path, options = {}) {
+      return apiFetch(path, options, false);
+    }
+
+    async function loadPortal() {
+      const me = await portalFetch('/v0/portal/me');
+      const usage = await portalFetch('/v0/portal/usage');
+      renderPortalUsage(usage.keys || []);
+      await pollPortalLogs();
+    }
+
+    function renderPortalUsage(keys) {
+      const tbody = $('#portalUsage');
+      tbody.innerHTML = '';
+      keys.forEach((k) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${k.label || '-'}</td>
+          <td>${k.key || '-'}</td>
+          <td>${k.total_limit || 0}</td>
+          <td>${k.used_count || 0}</td>
+          <td>${k.remaining || 0}</td>
+          <td>${k.concurrency_limit || 0}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function pollPortalLogs() {
+      const data = await portalFetch(`/v0/portal/logs?since=${state.portalSince}&limit=200`);
+      const logs = data.logs || [];
+      if (logs.length > 0) {
+        const logBox = $('#portalLogs');
+        const lines = logs.map((log) => {
+          const dt = new Date(log.timestamp * 1000).toLocaleString();
+          return `[${dt}] ${log.model} tokens=${log.tokens.total_tokens || 0} failed=${log.failed}`;
+        });
+        logBox.textContent = logBox.textContent + '\n' + lines.join('\n');
+        state.portalSince = Math.max(...logs.map((l) => l.timestamp));
+        if ($('#portalAutoScroll').checked) {
+          logBox.scrollTop = logBox.scrollHeight;
+        }
+      }
+    }
+
+    function initTabs() {
+      $$('nav button').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          $$('nav button').forEach((b) => b.classList.remove('active'));
+          btn.classList.add('active');
+          const tab = btn.dataset.tab;
+          $('#tab-admin').classList.toggle('hidden', tab !== 'admin');
+          $('#tab-portal').classList.toggle('hidden', tab !== 'portal');
+        });
+      });
+    }
+
+    $('#adminKey').value = state.adminKey;
+    $('#adminBaseUrl').value = state.adminBaseUrl;
+
+    $('#btnAdminConnect').addEventListener('click', async () => {
+      state.adminKey = $('#adminKey').value.trim();
+      state.adminBaseUrl = $('#adminBaseUrl').value.trim();
+      localStorage.setItem('mj3gc_admin_key', state.adminKey);
+      localStorage.setItem('mj3gc_admin_base', state.adminBaseUrl);
+      try {
+        await loadAdminData();
+        setStatus('已连接', true);
+      } catch (err) {
+        setStatus(err.message || '连接失败', false);
+      }
+    });
+
+    $('#btnRefreshUsers').addEventListener('click', loadAdminData);
+    $('#btnRefreshKeys').addEventListener('click', loadAdminData);
+    $('#btnCreateUser').addEventListener('click', createUser);
+    $('#btnCreateKey').addEventListener('click', createKey);
+    $('#btnClearLogs').addEventListener('click', async () => {
+      await apiFetch('/v0/management/logs', { method: 'DELETE' });
+      $('#adminLogs').textContent = '';
+      state.logAfter = 0;
+    });
+
+    $('#btnPortalConnect').addEventListener('click', async () => {
+      state.portalAuth.username = $('#portalUsername').value.trim();
+      state.portalAuth.password = $('#portalPassword').value.trim();
+      state.portalAuth.apiKey = $('#portalKey').value.trim();
+      try {
+        await loadPortal();
+        setStatus('用户已登录', true);
+      } catch (err) {
+        setStatus(err.message || '登录失败', false);
+      }
+    });
+
+    initTabs();
+    setInterval(() => {
+      if ($('#tab-admin').classList.contains('hidden')) return;
+      if (!$('#adminKey').value.trim()) return;
+      pollLogs();
+    }, 2500);
+
+    setInterval(() => {
+      if ($('#tab-portal').classList.contains('hidden')) return;
+      if (!state.portalAuth.apiKey && !state.portalAuth.username) return;
+      pollPortalLogs();
+    }, 4000);
+  </script>
+</body>
+</html>
+
